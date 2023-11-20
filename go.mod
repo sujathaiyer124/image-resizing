@@ -1,4 +1,4 @@
-module task4
+module github.com/sujathaiyer124/image-resizing.git
 
 go 1.21.1
 

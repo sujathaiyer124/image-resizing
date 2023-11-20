@@ -33,7 +33,7 @@ func Image(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
-	
+
 	sourceImagePath := filepath.Base(fileHeader.Filename)
 	destinationBucket := "pixsell-image"
 	destinationObjectName := "Resized image/" + sourceImagePath
@@ -48,8 +48,8 @@ func Image(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Error saving image to bucket: %v", err)
 	}
 	json.NewEncoder(w).Encode("Image saved inside the bucket.")
-	
-	resizedImage = imaging.Resize(resizedImage, 300, 0, imaging.Lanczos)
+
+	resizedImage = imaging.Resize(resizedImage, 200, 200, imaging.Lanczos)
 	// Save the resized image to a new  //file idhar naya vala folder mein save kar
 	if err := saveToBucket(resizedImage, destinationBucket, destinationObjectName); err != nil {
 		log.Fatalf("Error saving image to bucket folder: %v", err)
