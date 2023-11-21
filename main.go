@@ -10,19 +10,25 @@ import (
 	"path/filepath"
 
 	"cloud.google.com/go/storage"
+	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/disintegration/imaging"
-	"github.com/gorilla/mux"
+	//"github.com/gorilla/mux"
 )
 
-func main() {
-	// Open the original image file
-	r := mux.NewRouter()
-	r.HandleFunc("/images", Image).Methods("POST")
-	fmt.Println("Server  is getting started ....")
-	log.Fatal(http.ListenAndServe(":8000", r))
-
+func init() {
+	functions.HTTP("ImageResize", ImagesResize)
 }
-func Image(w http.ResponseWriter, r *http.Request) {
+
+//func main() {
+// Open the original image file
+//r := mux.NewRouter()
+// r.HandleFunc("/images", Images).Methods("POST")
+// fmt.Println("Server  is getting started ....")
+// log.Fatal(http.ListenAndServe(":8000", r))
+
+// }
+//entry point is ImageResize
+func ImagesResize(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
