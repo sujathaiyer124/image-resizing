@@ -1,4 +1,4 @@
-package main
+package image
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/disintegration/imaging"
+	//"github.com/sujathaiyer124/image-resizing"
 	//"github.com/gorilla/mux"
 )
 
@@ -23,11 +24,12 @@ func init() {
 // Open the original image file
 //r := mux.NewRouter()
 // r.HandleFunc("/images", Images).Methods("POST")
-// fmt.Println("Server  is getting started ....")
+//fmt.Println("Server  is getting started ....")
 // log.Fatal(http.ListenAndServe(":8000", r))
 
-// }
-//entry point is ImageResize
+//}
+
+// entry point is ImageResize
 func ImagesResize(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
