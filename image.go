@@ -31,6 +31,11 @@ func init() {
 
 // entry point is ImageResize
 func ImagesResize(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Max-Age", "3600")
+	w.Header().Set("Content-Type", "application/json")
 	if r.Method != "POST" {
 		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 		return
