@@ -1,7 +1,7 @@
 module github.com/sujathaiyer124/image-resizing
 
 go 1.21.1
-
+require github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
 require github.com/disintegration/imaging v1.6.2
 
 require (
