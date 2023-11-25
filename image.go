@@ -2,7 +2,7 @@ package image
 
 import (
 	"context"
-	//"encoding/json"
+	"encoding/json"
 	"fmt"
 	"image"
 	"io"
@@ -20,6 +20,11 @@ import (
 
 func init() {
 	functions.HTTP("ImageResize", ImagesResize)
+}
+
+type PublishData struct {
+	Message  string `json:"message"`
+	FileName string `json:"fileName"`
 }
 
 // func main() {
@@ -48,6 +53,8 @@ func ImagesResize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	fileName := fileHeader.Filename
+
 	projectId := "excellent-math-403109"
 	topicID := "resize"
 
@@ -63,7 +70,8 @@ func ImagesResize(w http.ResponseWriter, r *http.Request) {
 		log.Fatalf("Error saving image to bucket: %v", err)
 	}
 	//json.NewEncoder(w).Encode("Image saved inside the bucket.")
-	publishMessage(w, projectId, topicID)
+	message := "Image saved in the bucket"
+	publishMessage(w, projectId, topicID, message, fileName)
 }
 func saveToBucket(image image.Image, bucketName, objectName string) error {
 	// Create a context and Google Cloud Storage client.
@@ -92,7 +100,7 @@ func saveToBucket(image image.Image, bucketName, objectName string) error {
 
 	return nil
 }
-func publishMessage(w io.Writer, projectID, topicID string) error {
+func publishMessage(w io.Writer, projectID, topicID string, message, fileName string) error {
 
 	ctx := context.Background()
 	client, err := pubsub.NewClient(ctx, projectID)
@@ -102,8 +110,19 @@ func publishMessage(w io.Writer, projectID, topicID string) error {
 	defer client.Close()
 
 	t := client.Topic(topicID)
+	data := PublishData{
+		Message:  message,
+		FileName: fileName,
+	}
+
+	// Encode the struct as JSON
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Fatalf("Error encoding JSON: %v", err)
+		return err
+	}
 	result := t.Publish(ctx, &pubsub.Message{
-		Data: []byte("Image saved in the bucket"),
+		Data: jsonData,
 	})
 	// Block until the result is returned and a server-generated
 	// ID is returned for the published message.
