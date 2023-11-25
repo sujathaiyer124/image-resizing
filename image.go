@@ -5,29 +5,31 @@ import (
 	"encoding/json"
 	"fmt"
 	"image"
+	"io"
 	"log"
 	"net/http"
 	"path/filepath"
 
+	"cloud.google.com/go/pubsub"
 	"cloud.google.com/go/storage"
+
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
 	"github.com/disintegration/imaging"
 	//"github.com/sujathaiyer124/image-resizing"
-	//"github.com/gorilla/mux"
 )
 
 func init() {
 	functions.HTTP("ImageResize", ImagesResize)
 }
 
-//func main() {
-// Open the original image file
-//r := mux.NewRouter()
-// r.HandleFunc("/images", Images).Methods("POST")
-//fmt.Println("Server  is getting started ....")
-// log.Fatal(http.ListenAndServe(":8000", r))
+// func main() {
+// 	//Open the original image file
+// 	r := mux.NewRouter()
+// 	r.HandleFunc("/images", ImagesResize).Methods("POST")
+// 	fmt.Println("Server  is getting started ....")
+// 	log.Fatal(http.ListenAndServe(":8000", r))
 
-//}
+// }
 
 // entry point is ImageResize
 func ImagesResize(w http.ResponseWriter, r *http.Request) {
@@ -46,30 +48,22 @@ func ImagesResize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	projectId := "excellent-math-403109"
+	topicID := "resize"
 
 	sourceImagePath := filepath.Base(fileHeader.Filename)
 	destinationBucket := "pixsell-image"
-	destinationObjectName := "Resized image/" + sourceImagePath
-
 	resizedImage, err := imaging.Decode(file)
 	if err != nil {
 		fmt.Println("Error opening image for resizing:", err)
 		return
 	}
-	//yaha pe ek call karke vo bucket mein store kar
+	//Here it stores in bucket
 	if error := saveToBucket(resizedImage, destinationBucket, sourceImagePath); error != nil {
 		log.Fatalf("Error saving image to bucket: %v", err)
 	}
 	json.NewEncoder(w).Encode("Image saved inside the bucket.")
-
-	resizedImage = imaging.Resize(resizedImage, 200, 200, imaging.Lanczos)
-	// Save the resized image to a new  //file idhar naya vala folder mein save kar
-	if err := saveToBucket(resizedImage, destinationBucket, destinationObjectName); err != nil {
-		log.Fatalf("Error saving image to bucket folder: %v", err)
-	}
-
-	log.Printf("Resized image saved to gs://%s/%s\n", destinationBucket, destinationObjectName)
-	json.NewEncoder(w).Encode("Image resized and saved successfully.")
+	publishMessage(w, projectId, topicID)
 }
 func saveToBucket(image image.Image, bucketName, objectName string) error {
 	// Create a context and Google Cloud Storage client.
@@ -96,5 +90,27 @@ func saveToBucket(image image.Image, bucketName, objectName string) error {
 		return fmt.Errorf("Writer.Close: %v", err)
 	}
 
+	return nil
+}
+func publishMessage(w io.Writer, projectID, topicID string) error {
+
+	ctx := context.Background()
+	client, err := pubsub.NewClient(ctx, projectID)
+	if err != nil {
+		return fmt.Errorf("pubsub.NewClient: %w", err)
+	}
+	defer client.Close()
+
+	t := client.Topic(topicID)
+	result := t.Publish(ctx, &pubsub.Message{
+		Data: []byte("Image saved in the bucket"),
+	})
+	// Block until the result is returned and a server-generated
+	// ID is returned for the published message.
+	id, err := result.Get(ctx)
+	if err != nil {
+		return fmt.Errorf("get: %w", err)
+	}
+	fmt.Fprintf(w, "Published message with custom attributes; msg ID: %v\n", id)
 	return nil
 }

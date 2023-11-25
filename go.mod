@@ -5,9 +5,7 @@ go 1.21.1
 require github.com/GoogleCloudPlatform/functions-framework-go v1.8.0
 
 require github.com/disintegration/imaging v1.6.2
-require (
-    github.com/sujathaiyer124/image-resizing v1.0.0
-)
+
 require (
 	cloud.google.com/go v0.110.10 // indirect
 	cloud.google.com/go/compute v1.23.3 // indirect
@@ -45,6 +43,7 @@ require (
 )
 
 require (
+	cloud.google.com/go/pubsub v1.33.0
 	cloud.google.com/go/storage v1.35.1
 	github.com/gorilla/mux v1.8.1
 	golang.org/x/image v0.14.0 // indirect
