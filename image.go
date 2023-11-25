@@ -2,7 +2,7 @@ package image
 
 import (
 	"context"
-	"encoding/json"
+	//"encoding/json"
 	"fmt"
 	"image"
 	"io"
@@ -62,7 +62,7 @@ func ImagesResize(w http.ResponseWriter, r *http.Request) {
 	if error := saveToBucket(resizedImage, destinationBucket, sourceImagePath); error != nil {
 		log.Fatalf("Error saving image to bucket: %v", err)
 	}
-	json.NewEncoder(w).Encode("Image saved inside the bucket.")
+	//json.NewEncoder(w).Encode("Image saved inside the bucket.")
 	publishMessage(w, projectId, topicID)
 }
 func saveToBucket(image image.Image, bucketName, objectName string) error {
