@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"image"
 	"log"
-	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -18,49 +17,48 @@ import (
 )
 
 type PubSubMessage struct {
-	Data struct {
-		Message  string `json:"message"`
-		FileName string `json:"fileName"`
-	} `json:"data"`
+	Message  string `json:"message"`
+	FileName string `json:"fileName"`
 }
 
 func init() {
 	functions.CloudEvent("ResizeImageToBuckets", ResizeImageToBucket)
 }
 
-// func main() {
-// //Open the original image file
-// r := mux.NewRouter()
-// r.HandleFunc("/images", Images).Methods("POST")
-// fmt.Println("Server  is getting started ....")
-// log.Fatal(http.ListenAndServe(":8000", r))
-
-// }
 
 // entry point is ResizeImageToBucket
 func ResizeImageToBucket(ctx context.Context, m event.Event) error {
 
 	var pubsubMessage PubSubMessage
 	messageData := string(m.Data())
-	b64data := messageData[strings.IndexByte(messageData, ',')+1:]
+	var message map[string]interface{}
+	if err := json.Unmarshal([]byte(messageData), &message); err != nil {
+		log.Printf("Error decoding JSON: %v", err)
+		return
+	}
 
-	data, err := base64.StdEncoding.DecodeString(b64data)
+	dataField, ok := message["message"].(map[string]interface{})["data"].(string)
+	if !ok {
+		log.Println("Data field not found in the message")
+		return
+	}
+
+	// Decode the base64-encoded data
+	data, err := base64.StdEncoding.DecodeString(dataField)
 	if err != nil {
 		log.Printf("Error decoding base64 data: %v", err)
-		return nil
+		return
 	}
 
-	if err := json.Unmarshal(data, &pubsubMessage); err != nil {
-		log.Printf("Error unmarshalling Pub/Sub message data: %v", err)
-		return nil
-	}
 	log.Println("Data is", string(data))
+	if err := json.Unmarshal(data, &pubsubMessage); err != nil {
+		log.Fatal(err)
+	}
 	log.Printf("Unmarshalled Pub/Sub message: %+v", pubsubMessage)
-
-	msg := pubsubMessage.Data.Message
+	msg := pubsubMessage.Message
 	log.Println("The message is", msg)
 
-	imageName := pubsubMessage.Data.FileName
+	imageName := pubsubMessage.FileName
 	log.Println("the imagename is", imageName)
 
 	//sourceImagePath := filepath.Base(fileHeader.Filename)
