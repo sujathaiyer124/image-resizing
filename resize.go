@@ -2,6 +2,7 @@ package ResizeImage
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -40,11 +41,17 @@ func ResizeImageToBucket(ctx context.Context, m event.Event) error {
 
 	// var data map[string]interface{}
 	var pubsubMessage PubSubMessage
-	if err := json.Unmarshal(m.Data(), &pubsubMessage); err != nil {
+	data, err := base64.StdEncoding.DecodeString(string(m.Data()))
+	if err != nil {
+		log.Printf("Error decoding base64 data: %v", err)
+		return nil
+	}
+
+	if err := json.Unmarshal(data(), &pubsubMessage); err != nil {
 		log.Printf("Error unmarshalling Pub/Sub message data: %v", err)
 		return nil
 	}
-	log.Println("Data is", string(m.Data()))
+	log.Println("Data is", string(data))
 	log.Printf("Unmarshalled Pub/Sub message: %+v", pubsubMessage)
 
 	msg := pubsubMessage.Data.Message
