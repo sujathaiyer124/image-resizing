@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"image"
 	"log"
+	"strings"
 
 	"cloud.google.com/go/storage"
 	"github.com/GoogleCloudPlatform/functions-framework-go/functions"
@@ -39,9 +40,11 @@ func init() {
 // entry point is ResizeImageToBucket
 func ResizeImageToBucket(ctx context.Context, m event.Event) error {
 
-	// var data map[string]interface{}
 	var pubsubMessage PubSubMessage
-	data, err := base64.StdEncoding.DecodeString(string(m.Data()))
+	messageData := string(m.Data())
+	b64data := messageData[strings.IndexByte(messageData, ',')+1:]
+
+	data, err := base64.StdEncoding.DecodeString(b64data)
 	if err != nil {
 		log.Printf("Error decoding base64 data: %v", err)
 		return nil
