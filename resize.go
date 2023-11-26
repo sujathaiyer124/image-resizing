@@ -16,32 +16,43 @@ import (
 )
 
 type PubSubMessage struct {
-	Data []byte `json:"data"`
+	Data struct {
+		Message  string `json:"message"`
+		FileName string `json:"fileName"`
+	} `json:"data"`
 }
 
 func init() {
 	functions.CloudEvent("ResizeImageToBuckets", ResizeImageToBucket)
 }
 
-//func main() {
-// Open the original image file
-//r := mux.NewRouter()
+// func main() {
+// //Open the original image file
+// r := mux.NewRouter()
 // r.HandleFunc("/images", Images).Methods("POST")
-//fmt.Println("Server  is getting started ....")
+// fmt.Println("Server  is getting started ....")
 // log.Fatal(http.ListenAndServe(":8000", r))
 
-//}
+// }
 
 // entry point is ResizeImageToBucket
 func ResizeImageToBucket(ctx context.Context, m event.Event) error {
-	log.Printf("Received CloudEvent: %+v", m)
-	var data map[string]interface{}
-	if err := json.Unmarshal(m.Data(), &data); err != nil {
+
+	// var data map[string]interface{}
+	var pubsubMessage PubSubMessage
+	if err := json.Unmarshal(m.Data(), &pubsubMessage); err != nil {
 		log.Printf("Error unmarshalling Pub/Sub message data: %v", err)
 		return nil
 	}
-	log.Printf("Decoded CloudEvent payload: %+v", data)
-	imageName := data["fileName"].(string)
+	log.Println("Data is", string(m.Data()))
+	log.Printf("Unmarshalled Pub/Sub message: %+v", pubsubMessage)
+
+	msg := pubsubMessage.Data.Message
+	log.Println("The message is", msg)
+
+	imageName := pubsubMessage.Data.FileName
+	log.Println("the imagename is", imageName)
+
 	//sourceImagePath := filepath.Base(fileHeader.Filename)
 	destinationBucket := "pixsell-image"
 	destinationObjectName := "Resized image/" + imageName
