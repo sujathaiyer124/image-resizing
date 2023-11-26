@@ -47,7 +47,7 @@ func ResizeImageToBucket(ctx context.Context, m event.Event) error {
 		return nil
 	}
 
-	if err := json.Unmarshal(data(), &pubsubMessage); err != nil {
+	if err := json.Unmarshal(data, &pubsubMessage); err != nil {
 		log.Printf("Error unmarshalling Pub/Sub message data: %v", err)
 		return nil
 	}
