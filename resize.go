@@ -34,12 +34,13 @@ func init() {
 
 // entry point is ResizeImageToBucket
 func ResizeImageToBucket(ctx context.Context, m event.Event) error {
-
+	log.Printf("Received CloudEvent: %+v", m)
 	var data map[string]interface{}
 	if err := json.Unmarshal(m.Data(), &data); err != nil {
 		log.Printf("Error unmarshalling Pub/Sub message data: %v", err)
 		return nil
 	}
+	log.Printf("Decoded CloudEvent payload: %+v", data)
 	imageName := data["fileName"].(string)
 	//sourceImagePath := filepath.Base(fileHeader.Filename)
 	destinationBucket := "pixsell-image"
